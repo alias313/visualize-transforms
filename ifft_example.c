@@ -12,27 +12,38 @@ int main(int argc, char *argv[]) {
   int i;
 
   /* prepare signal */
+
+  const float interval = 0.1;
+
   if (!strcmp(argv[1], "cos")) {
+    const int cos_amp = 1;
+    const int cos_phase_rad = 0;
+    const int cos_freq_hz = 1;
     for (i = 0; i < N; i++) {
-      in[i][0] = 3*cos(5 * 2*M_PI*i/N);
+      in[i][0] = cos_amp * cos(cos_freq_hz * 2*M_PI*i/N + cos_phase_rad);
       in[i][1] = 0;
     }
   }
   else if (!strcmp(argv[1], "sin")) {
+    const int sin_amp = 1;
+    const int sin_phase_rad = 0;
+    const int sin_freq_hz = 1;
     for (i = 0; i < N; i++) {
-      in[i][0] = 3*sin(5 * 2*M_PI*i/N);
+      in[i][0] = sin_amp * sin(sin_freq_hz * 2*M_PI*i/N+sin_phase_rad);
       in[i][1] = 0;
   }
   }
   else if (!strcmp(argv[1], "sinc")) {
+    const int sinc_amp = 1;
+    const int sinc_phase_rad = 0;
+    const int sinc_freq_hz = 1;
     for (i = 0; i < N; i++) {
-      float interval = 0.1;
       float input = interval*i;
-      if (input == 0) {
-        in[i][0] = 1;
+      if (input == 0) { // change in the future to 2*M_PI_input + sinc_phase_rad ~ 0 (if it's between sampling interval, for example -0,05 < x < 0,05 is sinc_amp if interval is 0.1)
+        in[i][0] = sinc_amp;
         in[i][1] = 0;
       } else {
-        in[i][0] = sin(2*M_PI*input)/(2*M_PI*input);
+        in[i][0] = sinc_amp * sin(sinc_freq_hz * 2*M_PI*input)/(sinc_freq_hz * M_PI*input);
         in[i][1] = 0;
       }
     }
