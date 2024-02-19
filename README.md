@@ -11,3 +11,4 @@ IDEAS:
 -   Lead to the discovery of the ft by convolution (like in Mark Newman's video)
 -   Build an fft and convolution algorithm
 -   Other transforms (Cosine, sine, sinc transforms...)
+-   Load graphs by chunks (first 100 samples, etc.) or lazy load (load average of every 10, 5, 2 samples etc.)

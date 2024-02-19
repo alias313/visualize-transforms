@@ -3,42 +3,55 @@
 #include <fftw3.h>
 #include <string.h>
 
+#define M_PI 3.14159265358979323846
+
 #define N 1000
+
+#define a_argpos 1
+#define b_argpos 2
+#define sig_argpos 3
+#define amp_argpos 4
+#define freq_argpos 5
+#define phase_argpos 6
 
 int main(int argc, char *argv[]) {
 
-  fftw_complex in[N], out[N], in2[N]; /* double [2] */
+  const float a = atof(argv[a_argpos]);
+  const float b = atof(argv[b_argpos]);
+  const float amp = atof(argv[amp_argpos]);
+  const float freq_hz = atof(argv[freq_argpos]);
+  const float phase_rad = atof(argv[phase_argpos]);
+
+  const float sampling_interval = 0.01;
+  const int total_samples = ceil((b-a)/sampling_interval);
+  printf("Total samples: %d\n", total_samples);
+
+  fftw_complex in[total_samples], out[total_samples], in2[total_samples]; /* double [2] */
   fftw_plan p, q;
   int i;
 
   /* prepare signal */
-
-  const float interval = 0.1;
-
-  if (!strcmp(argv[1], "cos")) {
-    const int cos_amp = 1;
-    const int cos_phase_rad = 0;
-    const int cos_freq_hz = 1;
-    for (i = 0; i < N; i++) {
-      in[i][0] = cos_amp * cos(cos_freq_hz * 2*M_PI*i/N + cos_phase_rad);
+  if (!strcmp(argv[sig_argpos], "cos")) {
+    for (i = 0; i < total_samples; i++) {
+      float input = a + i*sampling_interval;
+      in[i][0] = amp * cos(freq_hz * 2*M_PI*input + phase_rad);
+      printf("%5.2f %+5.2f\n", input, in[i][0]);
       in[i][1] = 0;
     }
   }
-  else if (!strcmp(argv[1], "sin")) {
-    const int sin_amp = 1;
-    const int sin_phase_rad = 0;
-    const int sin_freq_hz = 1;
-    for (i = 0; i < N; i++) {
-      in[i][0] = sin_amp * sin(sin_freq_hz * 2*M_PI*i/N+sin_phase_rad);
+  else if (!strcmp(argv[sig_argpos], "sin")) {
+    for (i = 0; i < total_samples; i++) {
+      float input = a + i*sampling_interval;
+      in[i][0] = amp * sin(freq_hz * 2*M_PI*input+phase_rad);
       in[i][1] = 0;
   }
   }
-  else if (!strcmp(argv[1], "sinc")) {
+  else if (!strcmp(argv[sig_argpos], "sinc")) {
     const int sinc_amp = 1;
     const int sinc_phase_rad = 0;
     const int sinc_freq_hz = 1;
     for (i = 0; i < N; i++) {
-      float input = interval*i;
+      float input = sampling_interval*i;
       if (input == 0) { // change in the future to 2*M_PI_input + sinc_phase_rad ~ 0 (if it's between sampling interval, for example -0,05 < x < 0,05 is sinc_amp if interval is 0.1)
         in[i][0] = sinc_amp;
         in[i][1] = 0;
@@ -48,7 +61,7 @@ int main(int argc, char *argv[]) {
       }
     }
   }
-  else if (!strcmp(argv[1], "square")) {
+  else if (!strcmp(argv[sig_argpos], "square")) {
     for (i = 0; i < N; i++) {
       float interval = 0.1;
       float input = interval*i;
@@ -62,32 +75,36 @@ int main(int argc, char *argv[]) {
     }
   }
   else {
-    printf("%s isn't recognized as an implemented signal to compute\n", argv[1]);
+    printf("%s isn't recognized as an implemented signal to compute\n", argv[sig_argpos]);
     return 1;
   }
 
   /* forward Fourier transform, save the result in 'out' */
-  p = fftw_plan_dft_1d(N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+  p = fftw_plan_dft_1d(total_samples, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
   fftw_execute(p);
   printf("Freq\tFast Fourier Transform\n");
-  for (i = 0; i < floor(N/2); i++)
-    printf("%3d\t%+9.5f%+9.5fI\n", i, out[i][0], out[i][1]);
+  for (i = 0; i < total_samples; i++) {
+    float freq = i/(total_samples*sampling_interval);
+    printf("%+3.2f\t%+9.5f%+9.5fI\n", freq, out[i][0], out[i][1]);
+  }
   fftw_destroy_plan(p);
 
   /* backward Fourier transform, save the result in 'in2' */
   printf("\nInverse transform:\n");
-  q = fftw_plan_dft_1d(N, out, in2, FFTW_BACKWARD, FFTW_ESTIMATE);
+  q = fftw_plan_dft_1d(total_samples, out, in2, FFTW_BACKWARD, FFTW_ESTIMATE);
   fftw_execute(q);
   /* normalize */
-  for (i = 0; i < N; i++) {
-    in2[i][0] *= 1./N;
-    in2[i][1] *= 1./N;
+  for (i = 0; i < total_samples; i++) {
+    in2[i][0] *= 1./total_samples;
+    in2[i][1] *= 1./total_samples;
   }
   
   printf("Freq\tInput Signal\t\t   Inverse FFT\n");
-  for (i = 0; i < N; i++)
-    printf("%3d %+9.5f %+9.5f I vs. %+9.5f %+9.5f I  difference: %+24.22f\n",
-        i, in[i][0], in[i][1], in2[i][0], in2[i][1], in[i][0]-in2[i][0]);
+  for (i = 0; i < total_samples; i++) {
+    float input = a+i*sampling_interval;
+    printf("%+4.3f %+9.5f %+9.5f I vs. %+9.5f %+9.5f I  difference: %+24.22f\n",
+        input, in[i][0], in[i][1], in2[i][0], in2[i][1], in[i][0]-in2[i][0]);
+  }
   fftw_destroy_plan(q);
 
   fftw_cleanup();
