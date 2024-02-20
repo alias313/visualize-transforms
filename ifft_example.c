@@ -24,8 +24,8 @@ int main(int argc, char *argv[]) {
   const float freq_hz = atof(argv[freq_argpos]);
   const float phase_rad = atof(argv[phase_argpos]);
 
-  const float sampling_interval = 0.01;
-  const int total_samples = ceil((b-a)/sampling_interval);
+  const float sampling_interval = 0.001;
+  const int total_samples = ceil((b-a)/sampling_interval)+1;
   printf("Total samples: %d\n", total_samples);
 
   fftw_complex in[total_samples], out[total_samples], in2[total_samples]; /* double [2] */
@@ -61,10 +61,9 @@ int main(int argc, char *argv[]) {
     }
   }
   else if (!strcmp(argv[sig_argpos], "square")) {
-    for (i = 0; i < N; i++) {
-      float interval = 0.1;
-      float input = interval*i;
-      if (input < N*interval/2) {
+    for (i = 0; i < total_samples; i++) {
+      float input = a + i*sampling_interval;
+      if (abs(input) < 1) {
         in[i][0] = 1;
         in[i][1] = 0;
       } else {
@@ -84,10 +83,11 @@ int main(int argc, char *argv[]) {
 
   fptr = fopen("fft_out.txt", "w");
 
+  fprintf(fptr, "%d\n", total_samples);
   fprintf(fptr, "(00000) Freq\tFast Fourier Transform\n");
   for (i = 0; i < total_samples; i++) {
     float freq = i/(total_samples*sampling_interval);
-    fprintf(fptr, "(%05d) %+3.2f\t%+9.5f%+9.5fI\n", i+1,freq, out[i][0], out[i][1]);
+    fprintf(fptr, "(%05d) %+3.2f    | %+9.5f j%+9.5f\n", i+1,freq, out[i][0], out[i][1]);
   }
 
   fclose(fptr);
