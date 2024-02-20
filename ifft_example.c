@@ -15,6 +15,8 @@
 #define phase_argpos 6
 
 int main(int argc, char *argv[]) {
+    
+  FILE *fptr;
 
   const float a = atof(argv[a_argpos]);
   const float b = atof(argv[b_argpos]);
@@ -47,16 +49,13 @@ int main(int argc, char *argv[]) {
   }
   }
   else if (!strcmp(argv[sig_argpos], "sinc")) {
-    const int sinc_amp = 1;
-    const int sinc_phase_rad = 0;
-    const int sinc_freq_hz = 1;
-    for (i = 0; i < N; i++) {
-      float input = sampling_interval*i;
+    for (i = 0; i < total_samples; i++) {
+      float input = a + i*sampling_interval;
       if (input == 0) { // change in the future to 2*M_PI_input + sinc_phase_rad ~ 0 (if it's between sampling interval, for example -0,05 < x < 0,05 is sinc_amp if interval is 0.1)
-        in[i][0] = sinc_amp;
+        in[i][0] = amp;
         in[i][1] = 0;
       } else {
-        in[i][0] = sinc_amp * sin(sinc_freq_hz * 2*M_PI*input)/(sinc_freq_hz * M_PI*input);
+        in[i][0] = amp * sin(freq_hz * 2*M_PI*input)/(freq_hz * 2*M_PI*input);
         in[i][1] = 0;
       }
     }
@@ -82,11 +81,17 @@ int main(int argc, char *argv[]) {
   /* forward Fourier transform, save the result in 'out' */
   p = fftw_plan_dft_1d(total_samples, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
   fftw_execute(p);
-  printf("Freq\tFast Fourier Transform\n");
+
+  fptr = fopen("fft_out.txt", "w");
+
+  fprintf(fptr, "(00000) Freq\tFast Fourier Transform\n");
   for (i = 0; i < total_samples; i++) {
     float freq = i/(total_samples*sampling_interval);
-    printf("%+3.2f\t%+9.5f%+9.5fI\n", freq, out[i][0], out[i][1]);
+    fprintf(fptr, "(%05d) %+3.2f\t%+9.5f%+9.5fI\n", i+1,freq, out[i][0], out[i][1]);
   }
+
+  fclose(fptr);
+
   fftw_destroy_plan(p);
 
   /* backward Fourier transform, save the result in 'in2' */
@@ -99,11 +104,11 @@ int main(int argc, char *argv[]) {
     in2[i][1] *= 1./total_samples;
   }
   
-  printf("Freq\tInput Signal\t\t   Inverse FFT\n");
+  printf("(00000) Freq\tInput Signal\t\t   Inverse FFT\n");
   for (i = 0; i < total_samples; i++) {
     float input = a+i*sampling_interval;
-    printf("%+4.3f %+9.5f %+9.5f I vs. %+9.5f %+9.5f I  difference: %+24.22f\n",
-        input, in[i][0], in[i][1], in2[i][0], in2[i][1], in[i][0]-in2[i][0]);
+    printf("(%05d) %+4.3f %+9.5f %+9.5f I vs. %+9.5f %+9.5f I  difference: %+24.22f\n",
+        i, input, in[i][0], in[i][1], in2[i][0], in2[i][1], in[i][0]-in2[i][0]);
   }
   fftw_destroy_plan(q);
 
