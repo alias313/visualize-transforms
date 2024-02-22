@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
   const float freq_hz = atof(argv[freq_argpos]);
   const float phase_rad = atof(argv[phase_argpos]);
 
-  const float sampling_interval = 0.001;
+  const float sampling_interval = 0.005;
   const int total_samples = ceil((b-a)/sampling_interval)+1;
   printf("Total samples: %d\n", total_samples);
 
@@ -85,11 +85,13 @@ int main(int argc, char *argv[]) {
 
   // fprintf(fptr, "%d\n", total_samples);
   // fprintf(fptr, "(00000) Freq\tFast Fourier Transform\n");
-  fprintf(fptr, "Freq,FFT\n");
+  fprintf(fptr, "Freq,re(FFT),im(FFT),input,re(signal)\n");
   for (i = 0; i < total_samples; i++) {
+    float input = a+i*sampling_interval;
     float freq = i/(total_samples*sampling_interval);
     // fprintf(fptr, "(%05d) %+3.2f    | %+9.5f j%+9.5f\n", i+1,freq, out[i][0], out[i][1]);
-    fprintf(fptr, "%05.2f,%+8.5f\n", freq, out[i][0]);
+    fprintf(fptr, "%05.2f,%+08.5f,%+08.5f,%+08.5f,%+08.5f\n", freq, out[i][0], out[i][1], 
+                                                              input, in[i][0]);
   }
 
   fclose(fptr);

@@ -30,11 +30,51 @@
                 fill: false,
                 borderColor: 'rgba(255, 99, 132, 1)',
                 backgroundColor: 'rgba(255, 99, 132, 0.5)',
-                borderWidth: 1
+                borderWidth: 1,
+                yAxisId: 'y'
+              },
+              {
+                label: 'signal',
+                data: offt.signal,
+                fill: false,
+                borderColor: 'rgba(67, 59, 255, 1)',
+                backgroundColor: 'rgba(67, 59, 255, 0.5)',
+                borderWidth: 1,
+                yAxisId: 'y1'
               },
             ]
           },
-          options: {}
+          options: {    
+            responsive: true,
+            interaction: {
+              mode: 'index',
+              intersect: false,
+            },
+            stacked: false,
+            plugins: {
+              title: {
+                display: true,
+                text: 'fft of sampled function'
+              }
+            },
+            scales: {
+              y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+              },
+              y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+
+                // grid line settings
+                grid: {
+                  drawOnChartArea: false, // only want the grid lines for one axis to show up
+                },
+              },
+            }
+          },
         });
       }
       
@@ -43,17 +83,21 @@
         const fftString = await response.text();
         const freq = [];
         const fft = [];
+        const input = [];
+        const signal = [];
 
         const fftTable = fftString.split("\n").slice(1);
         fftTable.forEach(row => {
           const columns = row.split(',');
           freq.push(parseFloat(columns[0]));
           fft.push(parseFloat(columns[1]));
+          input.push(parseFloat(columns[3]));
+          signal.push(parseFloat(columns[4]));
         });
         
-        console.log(freq, fft);
+        console.log(freq, fft, input, signal);
 
-        return {freq, fft};
+        return {freq, fft, input, signal};
       }
     </script>
   </body>
