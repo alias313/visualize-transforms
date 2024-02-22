@@ -81,13 +81,15 @@ int main(int argc, char *argv[]) {
   p = fftw_plan_dft_1d(total_samples, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
   fftw_execute(p);
 
-  fptr = fopen("fft_out.txt", "w");
+  fptr = fopen("fft_out.csv", "w");
 
-  fprintf(fptr, "%d\n", total_samples);
-  fprintf(fptr, "(00000) Freq\tFast Fourier Transform\n");
+  // fprintf(fptr, "%d\n", total_samples);
+  // fprintf(fptr, "(00000) Freq\tFast Fourier Transform\n");
+  fprintf(fptr, "Freq,FFT\n");
   for (i = 0; i < total_samples; i++) {
     float freq = i/(total_samples*sampling_interval);
-    fprintf(fptr, "(%05d) %+3.2f    | %+9.5f j%+9.5f\n", i+1,freq, out[i][0], out[i][1]);
+    // fprintf(fptr, "(%05d) %+3.2f    | %+9.5f j%+9.5f\n", i+1,freq, out[i][0], out[i][1]);
+    fprintf(fptr, "%05.2f,%+8.5f\n", freq, out[i][0]);
   }
 
   fclose(fptr);
