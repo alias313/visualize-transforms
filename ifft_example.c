@@ -50,14 +50,21 @@ int main(int argc, char *argv[]) {
   }
   else if (!strcmp(argv[sig_argpos], "sinc")) {
     for (i = 0; i < total_samples; i++) {
-      float input = a + i*sampling_interval;
-      if (input == 0) { // change in the future to 2*M_PI_input + sinc_phase_rad ~ 0 (if it's between sampling interval, for example -0,05 < x < 0,05 is sinc_amp if interval is 0.1)
+/*      float input = a + i*sampling_interval;
+       if (input == 0) { // change in the future to 2*M_PI_input + sinc_phase_rad ~ 0 (if it's between sampling interval, for example -0,05 < x < 0,05 is sinc_amp if interval is 0.1)
         in[i][0] = amp;
-        in[i][1] = 0;
       } else {
         in[i][0] = amp * sin(freq_hz * 2*M_PI*input)/(freq_hz * 2*M_PI*input);
-        in[i][1] = 0;
+      } 
+        in[i][1] = 0; */
+      if (i < ceil(total_samples/2)) {
+        float input = a + i*sampling_interval + ceil(total_samples/2)*sampling_interval + sampling_interval;
+          in[i][0] = amp * sin(freq_hz * 2*M_PI*input)/(freq_hz * 2*M_PI*input);
+      } else {
+        float input = a + i*sampling_interval - ceil(total_samples/2)*sampling_interval;
+          in[i][0] = amp * sin(freq_hz * 2*M_PI*input)/(freq_hz * 2*M_PI*input);
       }
+          in[i][1] = 0;
     }
   }
   else if (!strcmp(argv[sig_argpos], "square")) {
@@ -90,8 +97,17 @@ int main(int argc, char *argv[]) {
     float input = a+i*sampling_interval;
     float freq = i/(total_samples*sampling_interval);
     // fprintf(fptr, "(%05d) %+3.2f    | %+9.5f j%+9.5f\n", i+1,freq, out[i][0], out[i][1]);
-    fprintf(fptr, "%05.2f,%+08.5f,%+08.5f,%+08.5f,%+08.5f\n", freq, out[i][0], out[i][1], 
+    if (i < ceil(total_samples/2)) {
+      int i_left_shifted = i+floor(total_samples/2)+1;
+      printf("LEFT : %04d, %04d\n", i, i_left_shifted);
+      fprintf(fptr, "%05.2f,%+08.5f,%+08.5f,%+08.5f,%+08.5f\n", freq, out[i_left_shifted][0], out[i_left_shifted][1], 
                                                               input, in[i][0]);
+    } else {
+      int i_right_shifted = i-floor(total_samples/2);
+      printf("RIGHT: %04d, %04d\n", i, i_right_shifted);
+      fprintf(fptr, "%05.2f,%+08.5f,%+08.5f,%+08.5f,%+08.5f\n", freq, out[i_right_shifted][0], out[i_right_shifted][1],
+                                                              input, in[i][0]);
+    }                                   
   }
 
   fclose(fptr);
