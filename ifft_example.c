@@ -116,12 +116,12 @@ int main(int argc, char *argv[]) {
     if (i < ceil(total_samples/2)) {
       int i_left_shifted = i+floor(total_samples/2)+1;
       printf("LEFT : %04d, %04d\n", i, i_left_shifted);
-      fprintf(fptr, "%05.2f,%+08.5f,%+08.5f,%+08.5f,%+08.5f\n", freq, out[i_left_shifted][0]*sampling_interval, out[i_left_shifted][1], 
+      fprintf(fptr, "%05.2f,%+08.5f,%+08.5f,%+08.5f,%+08.5f\n", freq, out[i_left_shifted][0], out[i_left_shifted][1], 
                                                               input, in[i][0]);
     } else {
       int i_right_shifted = i-floor(total_samples/2);
       printf("RIGHT: %04d, %04d\n", i, i_right_shifted);
-      fprintf(fptr, "%05.2f,%+08.5f,%+08.5f,%+08.5f,%+08.5f\n", freq, out[i_right_shifted][0]*sampling_interval, out[i_right_shifted][1],
+      fprintf(fptr, "%05.2f,%+08.5f,%+08.5f,%+08.5f,%+08.5f\n", freq, out[i_right_shifted][0], out[i_right_shifted][1],
                                                               input, in[i][0]);
     }                                   
   }
